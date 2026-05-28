@@ -60,6 +60,9 @@ jobs:
           pip install -r requirements.txt
 
       - name: Execute Automated Unit Testing Suite
+        env:
+            # Explicitly tell Python to treat the root workspace directory as a source module root
+            PYTHONPATH: ${{ github.workspace }}
         run: |
           # Run pytest pointing explicitly to our structured test module
           pytest src/tests/test_unit.py -v --junitxml=test-results.xml
