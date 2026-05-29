@@ -61,14 +61,48 @@ jobs:
 
       - name: Execute Automated Unit Testing Suite
         env:
-            # Explicitly tell Python to treat the root workspace directory as a source module root
-            PYTHONPATH: ${{ github.workspace }}
+          PYTHONPATH: ${{ github.workspace }}
         run: |
-          # Run pytest pointing explicitly to our structured test module
           pytest tests/test_unit.py -v --junitxml=test-results.xml
 
       - name: Build Secure Multi-Stage Docker Image
         run: |
-          # Build local immutable container image tracking version tags
           docker build -t novapay-core:${{ github.sha }} .
           echo "Immutable banking container artifact verified successfully."
+
+  # ==========================================================
+  # SPRINT 2: STAGE 3 & 4 - SECURITY SHIELD & VULNERABILITY GATES
+  # ==========================================================
+  security-shield:
+    name: "Stage 3 & 4: SAST & Supply Chain Security"
+    needs: build-and-test # Block security evaluation if core unit tests fail
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code Baseline
+        uses: actions/checkout@v4
+
+      - name: Initialize Runtime Environment (Python 3.10)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Bandit Security Scanner
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit
+
+      - name: Execute Stage 3: SAST Analysis (Code Security Scan)
+        run: |
+          # Scan the app/ folder. High-severity issues break the pipeline (-ll flag)
+          bandit -r src/app/ -ll -v
+
+      - name: Execute Stage 4: Dependency Vulnerability Scan (Trivy)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: 'fs'      # Scan our local repository file system
+          scan-ref: '.'
+          format: 'table'
+          exit-code: '1'       # CRITICAL: Fail the build with exit code 1 if issues are uncovered
+          ignore-unfixed: true # Filter out issues that do not have an active upstream vendor patch
+          severity: 'CRITICAL' # Strict financial gate isolation targeting severe exposures
