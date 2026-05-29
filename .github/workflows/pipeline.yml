@@ -94,8 +94,8 @@ jobs:
 
       - name: "Execute Stage 3: SAST Analysis (Code Security Scan)"
         run: |
-          # Scan the src/app/ folder. High-severity issues break the pipeline (-ll flag)
-          bandit -r src/app/ -ll -v
+          # Scan the app/ folder. High-severity issues break the pipeline (-ll flag)
+          bandit -r app/ -ll -v
 
       - name: "Stage 4: Dependency Vulnerability Scan (Trivy)"
         uses: aquasecurity/trivy-action@v0.28.0
