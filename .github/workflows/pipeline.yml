@@ -65,7 +65,7 @@ jobs:
             PYTHONPATH: ${{ github.workspace }}
         run: |
           # Run pytest pointing explicitly to our structured test module
-          pytest src/tests/test_unit.py -v --junitxml=test-results.xml
+          pytest tests/test_unit.py -v --junitxml=test-results.xml
 
       - name: Build Secure Multi-Stage Docker Image
         run: |
