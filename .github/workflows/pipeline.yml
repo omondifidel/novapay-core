@@ -98,7 +98,7 @@ jobs:
           bandit -r src/app/ -ll -v
 
       - name: "Stage 4: Dependency Vulnerability Scan (Trivy)"
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.28.0
         with:
           scan-type: 'fs'      # Scan our local repository file system
           scan-ref: '.'
