@@ -87,17 +87,17 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install Bandit Security Scanner
+      - name: "Install Bandit Security Scanner"
         run: |
           python -m pip install --upgrade pip
           pip install bandit
 
-      - name: Execute Stage 3: SAST Analysis (Code Security Scan)
+      - name: "Execute Stage 3: SAST Analysis (Code Security Scan)"
         run: |
-          # Scan the app/ folder. High-severity issues break the pipeline (-ll flag)
+          # Scan the src/app/ folder. High-severity issues break the pipeline (-ll flag)
           bandit -r src/app/ -ll -v
 
-      - name: Execute Stage 4: Dependency Vulnerability Scan (Trivy)
+      - name: "Stage 4: Dependency Vulnerability Scan (Trivy)"
         uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: 'fs'      # Scan our local repository file system
