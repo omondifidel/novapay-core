@@ -87,22 +87,25 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: "Install Bandit Security Scanner"
+      - name: Install Bandit Security Scanner
         run: |
           python -m pip install --upgrade pip
           pip install bandit
 
       - name: "Execute Stage 3: SAST Analysis (Code Security Scan)"
         run: |
-          # Scan the app/ folder. High-severity issues break the pipeline (-ll flag)
-          bandit -r app/ -ll -v
+          # Scan the src/app/ folder. High-severity issues break the pipeline (-ll flag)
+          bandit -r src/app/ -ll -v
 
-      - name: "Stage 4: Dependency Vulnerability Scan (Trivy)"
-        uses: aquasecurity/trivy-action@v0.28.0
-        with:
-          scan-type: 'fs'      # Scan our local repository file system
-          scan-ref: '.'
-          format: 'table'
-          exit-code: '1'       # CRITICAL: Fail the build with exit code 1 if issues are uncovered
-          ignore-unfixed: true # Filter out issues that do not have an active upstream vendor patch
-          severity: 'CRITICAL' # Strict financial gate isolation targeting severe exposures
+      - name: "Execute Stage 4: Dependency Vulnerability Scan (Trivy)"
+        run: |
+          # 1. Add AquaSecurity signature keys and repository definitions to apt
+          sudo apt-get update && sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/trivy.list
+          
+          # 2. Update package list and install the verified stable native CLI binary
+          sudo apt-get update && sudo apt-get install -y trivy
+          
+          # 3. Run the security scan. Fails with code 1 if unpatched CRITICAL issues are found
+          trivy fs --exit-code 1 --ignore-unfixed --severity CRITICAL .
