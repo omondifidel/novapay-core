@@ -18,5 +18,5 @@ class BankUser(Base):
     # ─── PHASE 1: EXPANDED CO-EXISTENCE COLUMNS ──────────────────────────
     # These must remain nullable=True initially because legacy database rows 
     # from Phase 0 do not contain separate first/last name values yet!
-    first_name = Column(String, nullable=True)
-    last_name = Column(String, nullable=True)
+    first_name = Column(String, nullable=False)
+    last_name = Column(String, nullable=False)
