@@ -61,7 +61,7 @@ jobs:
 
       - name: Execute Automated Unit Testing Suite
         env:
-          PYTHONPATH: ${{ github.workspace }}
+          PYTHONPATH: ${{ github.workspace }}/src/app  # Ensure tests can import application modules
         run: |
           pytest tests/test_unit.py -v --junitxml=test-results.xml
 
