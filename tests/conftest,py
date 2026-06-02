@@ -1,0 +1,5 @@
+import os
+import sys
+
+# Automatically find the absolute path of the 'src' directory and inject it into Python
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
