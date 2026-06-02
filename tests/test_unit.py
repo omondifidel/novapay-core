@@ -1,6 +1,11 @@
 import pytest
 from fastapi.testclient import TestClient
 from src.app.main import app
+from src.app.database import engine, Base
+
+# FAIL-SAFE: Programmatically force the test worker instance 
+# to build all schema structures inside the fresh memory space before executing calls
+Base.metadata.create_all(bind=engine)
 
 client = TestClient(app)
 
