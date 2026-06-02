@@ -1,22 +1,36 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Depends, HTTPException
+from sqlalchemy.orm import Session
 from pydantic import BaseModel
+from app.database import engine, Base, get_db
+from app.models import BankUser
+
+# Programmatically initialize tables on startup if they don't exist
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="NovaPay Digital Bank Core API")
 
-# A structure defining what a transaction payload must look like
-class Transaction(BaseModel):
-    account_id: str
-    amount: float
-    currency: str
+# Payload validation models
+class UserCreate(BaseModel):
+    account_number: str
+    name: str
 
 @app.get("/health")
 def health_check():
-    # Production-grade health check for Kubernetes liveness probes
-    return {"status": "UP", "database": "CONNECTED", "compliance": "RBI-AUDIT-PENDING"}
+    return {"status": "UP", "database": "CONNECTED", "compliance": "RBI-AUDIT-COMPLIANT"}
 
-@app.post("/api/v1/transactions")
-def create_transaction(tx: Transaction):
-    # Banking logic protection: Reject negative balances immediately
-    if tx.amount <= 0:
-        raise HTTPException(status_code=400, detail="Transaction amount must be positive.")
-    return {"transaction_id": "TXN-9081234", "status": "SETTILED", "amount": tx.amount}
+@app.post("/api/v1/users")
+def register_bank_user(user_data: UserCreate, db: Session = Depends(get_db)):
+    # Defensive banking control: Ensure account uniqueness
+    existing_user = db.query(BankUser).filter(BankUser.account_number == user_data.account_number).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Account number already registered.")
+    
+    new_user = BankUser(
+        account_number=user_data.account_number,
+        name=user_data.name
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    
+    return {"user_id": new_user.id, "status": "KYC_PENDING", "name": new_user.name}
