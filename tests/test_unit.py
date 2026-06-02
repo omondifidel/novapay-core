@@ -4,25 +4,33 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-# 1. Import your core application setup components
+# 1. Clean up stale test database assets on disk before initializing the test runtime
+if os.path.exists("./novapay_test.db"):
+    try:
+        os.remove("./novapay_test.db")
+    except Exception:
+        pass
+
+if os.path.exists("./novapay_isolated_test.db"):
+    try:
+        os.remove("./novapay_isolated_test.db")
+    except Exception:
+        pass
+
+# 2. Import your application core components explicitly from src
 from src.app.main import app
 from src.app.database import Base, get_db
 
-# 2. Establish a completely isolated, clean file database path for this run
+# 3. Establish a completely fresh, unique file path for this test run
 TEST_DATABASE_URL = "sqlite:///./novapay_isolated_test.db"
-
-# 3. Build a dedicated, isolated engine for the test lifecycle
-test_engine = create_engine(
-    TEST_DATABASE_URL, 
-    connect_args={"check_same_thread": False}
-)
+test_engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 
-# 4. Programmatically clean and rebuild the isolated schema structure
+# 4. Rebuild the schema cleanly from scratch using our fresh engine instance
 Base.metadata.drop_all(bind=test_engine)
 Base.metadata.create_all(bind=test_engine)
 
-# 5. Override FastAPI's database dependency injection to use our clean testing session
+# 5. Inject a dynamic dependency override to force FastAPI to use our clean engine session
 def override_get_db():
     db = TestingSessionLocal()
     try:
