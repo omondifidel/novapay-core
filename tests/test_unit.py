@@ -1,9 +1,14 @@
+import os
 import pytest
 from fastapi.testclient import TestClient
 from src.app.main import app
 from src.app.database import engine, Base
 
+# WIPE STRAGGLERS: Force drop all tables first to get rid of the legacy 'name' column constraint,
+# then recreate the tables clean for the contracted schema testing session.
+Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
+
 client = TestClient(app)
 
 def test_health_endpoint():
@@ -19,7 +24,6 @@ def test_register_bank_user_success():
     response = client.post("/api/v1/users", json=payload)
     assert response.status_code == 200
     
-    # Assert Contracted Architecture fields function flawlessly
     assert response.json()["captured_first_name"] == "Fidel"
     assert response.json()["captured_last_name"] == "Omondi"
-    assert "name" not in response.json()  # Confirm legacy name field is completely gone
+    assert "name" not in response.json()
