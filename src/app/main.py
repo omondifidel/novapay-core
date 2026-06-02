@@ -2,9 +2,12 @@ from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from src.app.database import engine, Base, get_db
+
+# CRITICAL FIX: We must explicitly import our data entities into local memory context 
+# BEFORE running create_all so SQLAlchemy's registry can detect our table structures.
 from src.app.models import BankUser
 
-# Programmatically initialize tables on startup if they don't exist
+# Initialize tables programmatically on application bootstrap
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="NovaPay Digital Bank Core API")
