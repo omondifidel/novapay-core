@@ -13,7 +13,7 @@ class BankUser(Base):
     
     # ─── LEGACY PHASE 0 COLUMN ──────────────────────────────────────────
     # Kept fully alive so legacy microservices don't break on execution
-    name = Column(String, nullable=False)
+    
     
     # ─── PHASE 1: EXPANDED CO-EXISTENCE COLUMNS ──────────────────────────
     # These must remain nullable=True initially because legacy database rows 
