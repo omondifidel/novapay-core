@@ -8,7 +8,7 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="NovaPay Digital Bank Core API")
 
-# Updated Request Validation Schema matching our contracted database
+# 1. Ensure the Pydantic schema expects ONLY the split names
 class UserCreate(BaseModel):
     account_number: str
     first_name: str
@@ -24,7 +24,7 @@ def register_bank_user(user_data: UserCreate, db: Session = Depends(get_db)):
     if existing_user:
         raise HTTPException(status_code=400, detail="Account number already registered.")
     
-    # Direct, optimized insertion without complex string manipulation
+    # 2. Absolute clean instantiation. Ensure 'name=' is NOT here!
     new_user = BankUser(
         account_number=user_data.account_number,
         first_name=user_data.first_name,
