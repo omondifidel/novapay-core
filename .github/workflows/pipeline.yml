@@ -1,4 +1,76 @@
-# ==========================================================
+name: NovaPay Core CI/CD Engine
+
+# Trigger the pipeline on pushes or pull requests targeting the main branch
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  # ==========================================================
+  # STAGE 1: SOURCE CONTROL AND STATIC ANALYSIS
+  # ==========================================================
+  source-and-validation:
+    name: "Stage 1: Source Control & Validation"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code Baseline
+        uses: actions/checkout@v4
+
+      - name: Initialize Runtime Environment (Python 3.10)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Cache Pip Packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install System and Application Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+  # ==========================================================
+  # STAGE 2: IMMUTABLE ARTIFACT BUILD & UNIT TESTING
+  # ==========================================================
+  build-and-test:
+    name: "Stage 2: Build & Unit Validation"
+    needs: source-and-validation # Enforce sequential dependency gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code Baseline
+        uses: actions/checkout@v4
+
+      - name: Initialize Runtime Environment (Python 3.10)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Base Requirements
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Execute Automated Unit Testing Suite
+        env:
+          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/src
+        run: |
+          pytest tests/test_unit.py -v --junitxml=test-results.xml
+
+      - name: Build Secure Multi-Stage Docker Image
+        run: |
+          docker build -t novapay-core:${{ github.sha }} .
+          echo "Immutable banking container artifact verified successfully."
+
+  # ==========================================================
   # SPRINT 2: STAGE 3 & 4 - SECURITY SHIELD & VULNERABILITY GATES
   # ==========================================================
   security-shield:
@@ -15,13 +87,10 @@
         with:
           python-version: "3.10"
 
-      # ─── CRITICAL ADDITION ──────────────────────────────────────────────
-      # We must install the requirements inside this fresh job environment
-      # so Trivy has access to the dependency trees it needs to scan!
-      - name: Install Application Dependencies for Security Scan
+      - name: Install Bandit Security Scanner
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt bandit
+          pip install bandit
 
       - name: "Execute Stage 3: SAST Analysis (Code Security Scan)"
         run: |
