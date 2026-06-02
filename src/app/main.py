@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from app.database import engine, Base, get_db
-from app.models import BankUser
+from src.app.database import engine, Base, get_db
+from src.app.models import BankUser
 
 # Programmatically initialize tables on startup if they don't exist
 Base.metadata.create_all(bind=engine)
