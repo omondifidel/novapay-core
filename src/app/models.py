@@ -11,7 +11,12 @@ class BankUser(Base):
     id = Column(Integer, primary_key=True, index=True)
     account_number = Column(String, unique=True, index=True, nullable=False)
     
-    # ─── LEGACY BASELINE COLUMN ──────────────────────────────────────────
-    # This represents our initial Phase 0 database design state.
-    # We will later split this into first_name and last_name with zero downtime!
+    # ─── LEGACY PHASE 0 COLUMN ──────────────────────────────────────────
+    # Kept fully alive so legacy microservices don't break on execution
     name = Column(String, nullable=False)
+    
+    # ─── PHASE 1: EXPANDED CO-EXISTENCE COLUMNS ──────────────────────────
+    # These must remain nullable=True initially because legacy database rows 
+    # from Phase 0 do not contain separate first/last name values yet!
+    first_name = Column(String, nullable=True)
+    last_name = Column(String, nullable=True)
