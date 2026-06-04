@@ -126,20 +126,20 @@ jobs:
       - name: Initialize Multi-Container Environment
         run: |
           echo "🚀 Spin up current architecture environment..."
-          docker-compose up -d --build
+          # 🪓 REMOVED HYPHEN HERE: Changed 'docker-compose' to 'docker compose'
+          docker compose up -d --build
 
       - name: "Stage 5.1: Automated Health-Check & Smoke Verification"
         run: |
           echo "🔍 Checking health of the new environment..."
-          # Give containers a few seconds to warm up and bind ports
           sleep 10
           
-          # Issue a target HTTP request to verify database connectivity and routing
           STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:80/api/v1/health || echo "failed")
           
           if [ "$STATUS_CODE" -ne 200 ]; then
             echo "❌ CRITICAL: App health check returned status $STATUS_CODE. Aborting rollout!"
-            docker-compose logs
+            # 🪓 REMOVED HYPHEN HERE TOO:
+            docker compose logs
             exit 1
           else
             echo "🟩 SUCCESS: Health check passed with status 200 OK!"
