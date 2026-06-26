@@ -48,3 +48,8 @@ The repository implements a fully automated, multi-stage workflow triggered on e
 ```text
 [Stage 1: Source & Validation] ──► [Stage 2: Build & Test] ──► [Stage 3 & 4: Security Shield]
      (Dependency Caching)             (Unit Validation)            (Bandit SAST & Trivy CVE)
+
+<img width="1365" height="636" alt="CI Pipleine" src="https://github.com/user-attachments/assets/4bff9c05-dfaa-4ab5-bcdf-c898071fe6f8" />
+<img width="1365" height="643" alt="CI CD pipeline " src="https://github.com/user-attachments/assets/21d8a76b-6841-45bd-bcda-49f8502abcf2" />
+
+
